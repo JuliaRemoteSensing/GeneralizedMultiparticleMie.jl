@@ -1,0 +1,13 @@
+name = "GeneralizedMultiparticleMie"
+uuid = "cf51e2d1-4d6a-45f8-9abd-4c48d1d87a5d"
+authors = ["Gabriel Wu <wuzihua@pku.edu.cn> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
