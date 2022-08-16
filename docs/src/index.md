@@ -4,7 +4,7 @@ CurrentModule = GeneralizedMultiparticleMie
 
 # GeneralizedMultiparticleMie
 
-Documentation for [GeneralizedMultiparticleMie](https://github.com/lucifer1004/GeneralizedMultiparticleMie.jl).
+Documentation for [GeneralizedMultiparticleMie](https://github.com/JuliaRemoteSensing/GeneralizedMultiparticleMie.jl).
 
 ```@index
 ```

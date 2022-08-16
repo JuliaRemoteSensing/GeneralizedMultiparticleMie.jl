@@ -1,5 +1,13 @@
 module GeneralizedMultiparticleMie
 
-# Write your package code here.
+import Arblib
+import GSL
+using LinearAlgebra: ⋅
+import SpecialFunctions
+import StaticArrays
+
+include("types.jl")
+include("special_functions.jl")
+include("vector_spherical_wave_functions.jl")
 
 end

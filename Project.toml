@@ -3,6 +3,16 @@ uuid = "cf51e2d1-4d6a-45f8-9abd-4c48d1d87a5d"
 authors = ["Gabriel Wu <wuzihua@pku.edu.cn> and contributors"]
 version = "0.1.0"
 
+[deps]
+Arblib = "fb37089c-8514-4489-9461-98f9c8763369"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+GSL = "92c85e6c-cbff-5e0c-80f7-495c94daaecd"
+IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MieScattering = "8e3a3109-b67c-4ece-a043-1792d6eaff4c"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1.7"
 
