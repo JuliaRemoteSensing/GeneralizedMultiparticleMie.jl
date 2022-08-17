@@ -1,10 +1,11 @@
 module GeneralizedMultiparticleMie
 
-import Arblib
-import GSL
+using Arblib: Arblib
+using GSL: GSL
 using LinearAlgebra: ⋅
-import SpecialFunctions
-import StaticArrays
+using SpecialFunctions: SpecialFunctions
+using StaticArrays: StaticArrays
+using WignerSymbols: WignerSymbols
 
 include("types.jl")
 include("special_functions.jl")
