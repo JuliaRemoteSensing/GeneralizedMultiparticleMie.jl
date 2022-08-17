@@ -311,7 +311,6 @@ end
 
 """
 Wigner 3-j symbols.
-
 """
 @inline function wigner_3j(T::DataType, j1::Integer, j2::Integer, j3::Integer, m1::Integer, m2::Integer,
                            m3::Integer=-m1 - m2)
@@ -326,30 +325,58 @@ end
     return wigner_3j(Float64, j1, j2, j3, m1, m2, m3)
 end
 
+@doc raw"""
+The Gaunt a-coefficient defined by Gaunt (1929):
+
+```math
+\begin{aligned}
+a(m, n, \mu, \nu, p)=&(-1)^{m+\mu}(2 p+1)\left[\frac{(n+m) !(\nu+\mu) !(p-m-\mu) !}{(n-m) !(\nu-\mu) !(p+m+\mu) !}\right]^{1 / 2} \\
+& \times\left(\begin{array}{ccc}
+n & \nu & p \\
+0 & 0 & 0
+\end{array}\right)\left(\begin{array}{ccc}
+n & \nu & p \\
+m & \mu & -m-\mu
+\end{array}\right)
+\end{aligned}
+```
+
+References:
+
+- Gaunt, J.A., 1929. IV. The triplets of helium. Philosophical Transactions of the Royal Society of London. Series A, Containing Papers of a Mathematical or Physical Character 228, 151–196.
 """
-a-function.
-"""
-function a_func(T::DataType, n::Integer, v::Integer, p::Integer, m::Integer, u::Integer)
-    numerator = factorial(T, n + m) * factorial(T, v + u) * factorial(T, p - m - u)
-    denominator = factorial(T, n - m) * factorial(T, v - u) * factorial(T, p + m + u)
-    factor = (-1)^((m + u) & 1) * (2p + 1) * √(numerator / denominator)
-    w1 = wigner_3j(T, n, v, p, 0, 0)
-    w2 = wigner_3j(T, n, v, p, m, u)
+function gaunt_a(T::DataType, m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer)
+    numerator = factorial(T, n + m) * factorial(T, ν + μ) * factorial(T, p - m - μ)
+    denominator = factorial(T, n - m) * factorial(T, ν - μ) * factorial(T, p + m + μ)
+    factor = (-1)^((m + μ) & 1) * (2p + 1) * √(numerator / denominator)
+    w1 = wigner_3j(T, n, ν, p, 0, 0)
+    w2 = wigner_3j(T, n, ν, p, m, μ)
     return factor * w1 * w2
 end
 
-@inline a_func(n::Integer, v::Integer, p::Integer, m::Integer, u::Integer) = a_func(Float64, n, v, p, m, u)
+@inline gaunt_a(m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer) = gaunt_a(Float64, m, n, μ, ν, p)
 
+@doc raw"""
+```math
+\begin{aligned}
+b(m, n, \mu, \nu, p)=&(-1)^{m+\mu}(2 p+3)\left[\frac{(n+m) !(\nu+\mu) !(p-m-\mu) !}{(n-m) !(\nu-\mu) !(p+m+\mu) !}\right]^{1 / 2} \\
+& \times\left(\begin{array}{ccc}
+n & \nu & p \\
+0 & 0 & 0
+\end{array}\right)\left(\begin{array}{ccc}
+n & \nu & p+1 \\
+m & \mu & -m-\mu
+\end{array}\right)
+\end{aligned}
+```
 """
-b-function.
-"""
-function b_func(T::DataType, n::Integer, v::Integer, p::Integer, m::Integer, u::Integer)
-    numerator = factorial(T, n + m) * factorial(T, v + u) * factorial(T, p - m - u + 1)
-    denominator = factorial(T, n - m) * factorial(T, v - u) * factorial(T, p + m + u + 1)
-    factor = (-1)^((m + u) & 1) * (2p + 3) * √(numerator / denominator)
-    w1 = wigner_3j(T, n, v, p, 0, 0)
-    w2 = wigner_3j(T, n, v, p + 1, m, u)
+function gaunt_b(T::DataType, m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer)
+    numerator = factorial(T, n + m) * factorial(T, ν + μ) * factorial(T, p - m - μ + 1)
+    denominator = factorial(T, n - m) * factorial(T, ν - μ) * factorial(T, p + m + μ + 1)
+    factor = (-1)^((m + μ) & 1) * (2p + 3) * √(numerator / denominator)
+    w1 = wigner_3j(T, n, ν, p, 0, 0)
+    w2 = wigner_3j(T, n, ν, p + 1, m, μ)
     return factor * w1 * w2
 end
 
-@inline b_func(n::Integer, v::Integer, p::Integer, m::Integer, u::Integer) = b_func(Float64, n, v, p, m, u)
+@inline gaunt_b(m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer) = gaunt_b(Float64, m, n, μ, ν, p)
