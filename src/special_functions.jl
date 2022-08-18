@@ -538,13 +538,33 @@ where
 0 \leq \alpha<2 \pi, \quad 0 \leq \beta \leq \pi, \quad 0 \leq \gamma<2 \pi
 ```
 """
-function wigner_D(T::DataType, m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
+@inline function wigner_D(T::DataType, m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
     α = T(α)
     β = T(β)
     γ = T(γ)
-    return exp(-1im * m * α) * wigner_d(T, m, m′, n, β) * exp(-1im * m′ * γ)
+    return exp(-1im * (m * α + m′ * γ)) * wigner_d(T, m, m′, n, β)
 end
 
 @inline function wigner_D(m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
     return wigner_D(Float64, m, m′, n, α, β, γ)
+end
+
+function wigner_D_recursion(T::DataType, m::Integer, m′::Integer, nmax::Integer, α::Number, β::Number,
+                            γ::Number)
+    α = T(α)
+    β = T(β)
+    γ = T(γ)
+    d = wigner_d_recursion(T, m, m′, nmax, β)
+    factor = exp(-1im * (m * α + m′ * γ))
+    if T <: Arblib.ArbLike
+        D = OffsetArrays.OffsetArray(Arblib.AcbRefVector(length(d)), eachindex(d))
+        @. D = d * factor
+    else
+        D = d * factor
+    end
+    return D
+end
+
+@inline function wigner_D_recursion(m::Integer, m′::Integer, nmax::Integer, α::Number, β::Number, γ::Number)
+    return wigner_D_recursion(Float64, m, m′, nmax, α, β, γ)
 end
