@@ -25,4 +25,14 @@
             end
         end
     end
+
+    @testset "Wigner D-function" begin
+        α, β, γ = rand(3) .* π
+
+        @testset "m = $m, m′ = $m′, n = $n" for m in -2:2, m′ in -2:2, n in max(abs(m), abs(m′)):2
+            D = GeneralizedMultiparticleMie.wigner_D(Float64, m, m′, n, α, β, γ)
+            DD = WignerD.wignerDjmn(n, m, m′, α, β, γ)
+            @test D ≈ DD
+        end
+    end
 end

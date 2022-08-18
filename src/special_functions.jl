@@ -524,3 +524,27 @@ end
 @inline function wigner_d_recursion(m::Integer, n::Integer, smax::Integer, θ::Number; deriv::Bool=false)
     return wigner_d_recursion(Float64, m, n, smax, θ; deriv)
 end
+
+@doc raw"""
+Wigner D-function ``D^j_{mn}(\theta)`` defined as:
+
+```math
+D_{m m^{\prime}}^{n}(\alpha, \beta, \gamma)=\mathrm{e}^{-\mathrm{i} m \alpha} d_{m m^{\prime}}^{n}(\beta) \mathrm{e}^{-\mathrm{i} m^{\prime} \gamma}
+```
+
+where
+
+```math
+0 \leq \alpha<2 \pi, \quad 0 \leq \beta \leq \pi, \quad 0 \leq \gamma<2 \pi
+```
+"""
+function wigner_D(T::DataType, m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
+    α = T(α)
+    β = T(β)
+    γ = T(γ)
+    return exp(-1im * m * α) * wigner_d(T, m, m′, n, β) * exp(-1im * m′ * γ)
+end
+
+@inline function wigner_D(m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
+    return wigner_D(Float64, m, m′, n, α, β, γ)
+end
