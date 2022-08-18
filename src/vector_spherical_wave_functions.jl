@@ -2,6 +2,8 @@
 
 const VSWF_KERNEL = (spherical_jn, spherical_yn, spherical_hn1, spherical_hn2)
 const VSWF_KERNEL_DERIV = (spherical_jn_deriv, spherical_yn_deriv, spherical_hn1_deriv, spherical_hn2_deriv)
+const VSWF_KERNEL_RICATTI = (ricatti_jn, ricatti_yn, ricatti_hn1, ricatti_hn2)
+const VSWF_KERNEL_RICATTI_DERIV = (ricatti_jn_deriv, ricatti_yn_deriv, ricatti_hn1_deriv, ricatti_hn2_deriv)
 
 struct VSWFCache{T<:Real,V<:AbstractVector}
     factor::T
@@ -21,8 +23,17 @@ end
 
 @inline Emn(m, n) = (1im)^(n & 3) * √((2n + 1) * factorial(n - m) / (n * (n + 1) * factorial(n + m)))
 
-"""
+@doc raw"""
 Vector spherical wave function, electric (TM) modes.
+
+```math
+\begin{aligned}
+\mathbf{N}_{m n}^{(i)}(\rho, \theta, \phi)=&\left\{\hat{\mathbf{e}}_{r} n(n+1) P_{n}^{m}(\cos \theta) \frac{z^{(i)}_{n}(\rho)}{\rho}\right.\\
+&\left.+\left[\hat{\mathbf{e}}_{\theta} \tau_{m n}(\cos \theta)+\hat{\mathbf{e}}_{\phi} \mathrm{i} \pi_{m n}(\cos \theta)\right] \frac{(\rho\cdot z_n^{(i)}(\rho))^{\prime}}{\rho}\right\} \exp (\mathrm{i} m \phi)
+\end{aligned}
+```
+
+where ``i=1,2,3,4`` relates to incident, interior, outgoing and ingoing VSWF.
 """
 function vswf_electric(T::DataType, n::Integer, m::Integer, mode::VSWFMode, r::Number, θ::Number, ϕ::Number, k::Number)
     r = T(r)
@@ -49,8 +60,14 @@ end
     return vswf_electric(Float64, n, m, mode, r, θ, ϕ, k)
 end
 
-"""
+@doc raw"""
 Vector spherical wave function, magnetic (TE) modes.
+
+```math
+\mathbf{M}_{m n}^{(i)}(\rho, \theta, \phi)=\left[\hat{\mathbf{e}}_{\theta} \mathrm{i} \pi_{m n}(\cos \theta)-\hat{\mathbf{e}}_{\phi} \tau_{m n}(\cos \theta)\right] z_{n}^{(i)}(\rho) \exp (\mathrm{i} m \phi)
+```
+
+where ``i=1,2,3,4`` relates to incident, interior, outgoing and ingoing VSWF.
 """
 function vswf_magnetic(T::DataType, n::Integer, m::Integer, mode::VSWFMode, r::Number, θ::Number, ϕ::Number, k::Number)
     r = T(r)
@@ -83,20 +100,17 @@ function expand_E_cluster(T::DataType, mode::VSWFMode, k::Number)
     return
 end
 
-"""
-Cached VSWF coefficients.
-"""
 Caching.@cache function vswf_cache(T::DataType, n::Integer, m::Integer, ν::Integer, μ::Integer)
     CT = complex(T)
     factor = (-1)^(m & 1) * √((2ν + 1) * (2n + 1) * factorial(T, ν - μ) * factorial(T, n - m))
-    qA = minimum((n, ν, (n + ν - abs(m + μ) ÷ 2)))
-    qB = minimum((n, ν, (n + ν + 1 - abs(m + μ) ÷ 2)))
+    qA = minimum((n, ν, (n + ν - abs(m + μ)) ÷ 2))
+    qB = minimum((n, ν, (n + ν + 1 - abs(m + μ)) ÷ 2))
     A = CT <: Arblib.AcbLike ? Arblib.AcbRefVector(qA + 1) : zeros(CT, qA + 1)
     B = CT <: Arblib.AcbLike ? Arblib.AcbRefVector(qB + 1) : zeros(CT, qB + 1)
 
     for q in 0:(qA - 1)
         p = n + ν - 2q
-        aq = gaunt_a(m, n, μ, ν, p)
+        aq = gaunt_a(T, m, n, μ, ν, p)
         A[q + 1] = aq * (1im)^(p & 3) * T(n * (n + 1) + ν * (ν + 1) - p * (p + 1))
     end
 
@@ -110,5 +124,18 @@ Caching.@cache function vswf_cache(T::DataType, n::Integer, m::Integer, ν::Inte
     return VSWFCache(factor, A, B)
 end
 
-@inline vswf_cache(n::Integer, m::Integer, ν::Integer, μ::Integer) = vswf_cache(Float64, n, m, ν, μ)
+"""
+Precompute required VSWF coefficients.
+"""
+function init_vswf_cache(T::DataType, lmax::Integer)
+    indices = NTuple{4,Int}[(n, m, ν, μ) for n in 1:lmax for m in (-n):n for ν in 1:n for μ in (-ν):ν]
 
+    Threads.@threads for (n, m, ν, μ) in indices
+        vswf_cache(T, n, m, ν, μ)
+    end
+end
+
+@inline init_vswf_cache(lmax::Integer) = init_vswf_cache(Float64, lmax)
+
+function vsh_translation_insert_pair()
+end
