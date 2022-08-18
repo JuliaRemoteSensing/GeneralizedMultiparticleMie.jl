@@ -1,0 +1,5 @@
+[deps]
+GSL = "92c85e6c-cbff-5e0c-80f7-495c94daaecd"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+WignerD = "87c4ff3e-34df-11e9-37a7-516cea4e0402"

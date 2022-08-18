@@ -13,7 +13,7 @@ makedocs(;
                                 canonical="https://JuliaRemoteSensing.github.io/GeneralizedMultiparticleMie.jl",
                                 edit_link="main",
                                 assets=String[]),
-         pages=["Home" => "index.md"])
+         pages=["Home" => "index.md", "References" => "references.md"])
 
 deploydocs(;
            repo="github.com/JuliaRemoteSensing/GeneralizedMultiparticleMie.jl",

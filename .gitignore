@@ -3,3 +3,6 @@
 *.jl.mem
 /docs/build/
 /*.jl
+
+# Temporarily ignore the whole /fortran directory
+/fortran
