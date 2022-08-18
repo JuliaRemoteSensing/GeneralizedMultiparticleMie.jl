@@ -2,7 +2,6 @@
     @testset "Wigner d-function" begin
         smax = 5
         angles = rand(10) .* π
-        @show angles
 
         @testset "m = $m, n = $n" for m in -2:2, n in -2:2
             for θ in angles
@@ -11,7 +10,7 @@
                 smin = max(abs(m), abs(n))
                 for j in smin:smax
                     dd = WignerD.wignerdjmn(j, m, n, θ)
-                    d1 = GeneralizedMultiparticleMie.wigner_d(Float64, m, n, j, θ)
+                    d1 = GeneralizedMultiparticleMie.wigner_d_naive(Float64, m, n, j, θ)
                     @test d[j] ≈ dd ≈ d1
                 end
 

@@ -1,13 +1,25 @@
+const FACTORIAL = Dict{DataType,Vector}()
+
 """
 Calculate factorials using the Gamma function.
 """
-@inline function factorial(T::DataType, n)
-    if T <: Arblib.ArbLike
-        return Arblib.gamma!(Arblib.Arb(), Arblib.Arb(n + 1))
-    elseif T <: Arblib.AcbLike
-        return Arblib.gamma!(Arblib.Acb(), Arblib.Acb(n + 1))
+function factorial(T::DataType, n)
+    if n <= 20
+        return T(Base.factorial(n))
+    end
+
+    if haskey(FACTORIAL, T)
+        memo = FACTORIAL[T]
+        n₀ = length(memo)
+        if n₀ <= n
+            for i in n₀:n
+                push!(memo, memo[end] * i)
+            end
+        end
+        return memo[n + 1]
     else
-        return SpecialFunctions.gamma(T(n + 1))
+        FACTORIAL[T] = T[T(Base.factorial(i)) for i in 0:20]
+        return factorial(T, n)
     end
 end
 
@@ -405,7 +417,7 @@ d_{m n}^{s}(\vartheta)=& \sqrt{(s+m) !(s-m) !(s+n) !(s-n) !} \\
 \end{aligned}
 ```
 """
-function wigner_d(T::DataType, m::Integer, n::Integer, s::Integer, θ::Number)
+function wigner_d_naive(T::DataType, m::Integer, n::Integer, s::Integer, θ::Number)
     if s < max(abs(m), abs(n))
         return zero(T)
     end
@@ -416,19 +428,29 @@ function wigner_d(T::DataType, m::Integer, n::Integer, s::Integer, θ::Number)
     sin_half = sin(half)
     kmin = max(0, m - n)
     kmax = min(s + m, s - n)
-    d = start = (-1)^(kmin & 1) * cos_half^(2s - 2kmin + m - n) * sin_half^(2kmin - m + n) /
-                (factorial(T, kmin) * factorial(T, s + m - kmin) * factorial(T, s - n - kmin) *
-                 factorial(T, n - m + kmin))
-
+    sig = (-1)^(kmin & 1)
+    ch = cos_half^(2s - 2kmin + m - n)
+    sh = sin_half^(2kmin - m + n)
+    fac = factorial(T, kmin) * factorial(T, s + m - kmin) * factorial(T, s - n - kmin) *
+          factorial(T, n - m + kmin)
+    d = sig * ch * sh / fac
     for k in (kmin + 1):kmax
-        start *= -1 * cos_half^(-2) * sin_half^2 / (k * (n - m + k)) * (s + m - k + 1) * (s - n - k + 1)
-        d += start
+        sig = -sig
+        ch *= cos_half^(-2)
+        sh *= sin_half^2
+        fac *= k * (n - m + k)
+        fac /= (s + m - k + 1) * (s - n - k + 1)
+        d += sig * ch * sh / fac
     end
 
     return d * √(factorial(T, s + m) * factorial(T, s - m) * factorial(T, s + n) * factorial(T, s - n))
 end
 
-@inline wigner_d(m::Integer, n::Integer, s::Integer, θ::Number) = wigner_d(Float64, m, n, s, θ)
+"""
+Wrapper of `WignerD.jl`'s `WignerD.wignerdjmn()` function, which is much faster than `wigner_d_naive()`.
+"""
+@inline wigner_d(T::DataType, m::Integer, n::Integer, s::Integer, θ::Number) = T(WignerD.wignerdjmn(s, m, n, θ))
+@inline wigner_d(m::Integer, n::Integer, s::Integer, θ::Number) = WignerD.wignerdjmn(s, m, n, θ)
 
 @doc raw"""
 Calculate Wigner (small) d-function ``d_{mn}^s(\theta)`` for ``s\in[s_{\min}=\max(|m|, |n|),s_{\max}]`` (and also its derivative) via upward recursion, using Eq. (B.22) of Mishchenko et al. (2002).
@@ -542,7 +564,7 @@ where
     α = T(α)
     β = T(β)
     γ = T(γ)
-    return exp(-1im * (m * α + m′ * γ)) * wigner_d(T, m, m′, n, β)
+    return cis(-(m * α + m′ * γ)) * wigner_d(T, m, m′, n, β)
 end
 
 @inline function wigner_D(m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
@@ -555,7 +577,7 @@ function wigner_D_recursion(T::DataType, m::Integer, m′::Integer, nmax::Intege
     β = T(β)
     γ = T(γ)
     d = wigner_d_recursion(T, m, m′, nmax, β)
-    factor = exp(-1im * (m * α + m′ * γ))
+    factor = cis(-(m * α + m′ * γ))
     if T <: Arblib.ArbLike
         D = OffsetArrays.OffsetArray(Arblib.AcbRefVector(length(d)), eachindex(d))
         @. D = d * factor
