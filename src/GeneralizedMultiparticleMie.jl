@@ -7,7 +7,6 @@ using LinearAlgebra: ⋅
 using OffsetArrays: OffsetArrays
 using SpecialFunctions: SpecialFunctions
 using StaticArrays: StaticArrays
-using WignerD: WignerD
 using WignerSymbols: WignerSymbols
 
 include("types.jl")

@@ -3,7 +3,7 @@ const FACTORIAL = Dict{DataType,Vector}()
 """
 Calculate factorials using the Gamma function.
 """
-function factorial(T::DataType, n)
+function factorial(::Type{T}, n)::T where {T}
     if n <= 20
         return T(Base.factorial(n))
     end
@@ -28,7 +28,7 @@ end
 """
 Spherical Bessel function of the first kind.
 """
-@inline function spherical_jn(T::DataType, n::Integer, z)
+@inline function spherical_jn(::Type{T}, n::Integer, z) where {T}
     if T <: Arblib.ArbLike
         return √(Arblib.Arb(π) / (2z)) * Arblib.hypgeom_bessel_j!(Arblib.Arb(), Arblib.Arb(n + 1 // 2), Arblib.Arb(z))
     elseif T <: Arblib.AcbLike
@@ -44,7 +44,9 @@ end
 """
 First-order derivative of spherical Bessel function of the first kind.
 """
-@inline spherical_jn_deriv(T::DataType, n::Integer, z) = spherical_jn(T, n - 1, z) - (n + 1) / z * spherical_jn(T, n, z)
+@inline function spherical_jn_deriv(::Type{T}, n::Integer, z) where {T}
+    return spherical_jn(T, n - 1, z) - (n + 1) / z * spherical_jn(T, n, z)
+end
 @inline spherical_jn_deriv(n::Integer, z::Real) = spherical_jn_deriv(Float64, n, z)
 @inline spherical_jn_deriv(n::Integer, z) = spherical_jn_deriv(ComplexF64, n, z)
 
@@ -52,7 +54,7 @@ First-order derivative of spherical Bessel function of the first kind.
 """
 Spherical Bessel function of the second kind.
 """
-function spherical_yn(T::DataType, n::Integer, z)
+function spherical_yn(::Type{T}, n::Integer, z) where {T}
     if T <: Arblib.ArbLike
         return √(Arblib.Arb(π) / (2z)) * Arblib.hypgeom_bessel_y!(Arblib.Arb(), Arblib.Arb(n + 1 // 2), Arblib.Arb(z))
     elseif T <: Arblib.AcbLike
@@ -68,21 +70,23 @@ end
 """
 First-order derivative of spherical Bessel function of the second kind.
 """
-@inline spherical_yn_deriv(T::DataType, n::Integer, z) = spherical_yn(T, n - 1, z) - (n + 1) / z * spherical_yn(T, n, z)
+@inline function spherical_yn_deriv(::Type{T}, n::Integer, z) where {T}
+    return spherical_yn(T, n - 1, z) - (n + 1) / z * spherical_yn(T, n, z)
+end
 @inline spherical_yn_deriv(n::Integer, z::Real) = spherical_yn_deriv(Float64, n, z)
 @inline spherical_yn_deriv(n::Integer, z) = spherical_yn_deriv(ComplexF64, n, z)
 
 """
 Spherical Hankel function of the first kind.
 """
-@inline spherical_hn1(T::DataType, n::Integer, z) = spherical_jn(T, n, z) + 1im * spherical_yn(T, n, z)
+@inline spherical_hn1(::Type{T}, n::Integer, z) where {T} = spherical_jn(T, n, z) + 1im * spherical_yn(T, n, z)
 @inline spherical_hn1(n::Integer, z::Real) = spherical_hn1(Float64, n, z)
 @inline spherical_hn1(n::Integer, z) = spherical_hn1(ComplexF64, n, z)
 
 """
 First-order derivative of spherical Hankel function of the first kind.
 """
-@inline function spherical_hn1_deriv(T::DataType, n::Integer, z)
+@inline function spherical_hn1_deriv(::Type{T}, n::Integer, z) where {T}
     return spherical_jn_deriv(T, n, z) + 1im * spherical_yn_deriv(T, n, z)
 end
 
@@ -92,7 +96,7 @@ end
 """
 Spherical Hankel function of the second kind.
 """
-@inline spherical_hn2(T::DataType, n::Integer, z) = spherical_jn(T, n, z) - 1im * spherical_yn(T, n, z)
+@inline spherical_hn2(::Type{T}, n::Integer, z) where {T} = spherical_jn(T, n, z) - 1im * spherical_yn(T, n, z)
 
 @inline spherical_hn2(n::Integer, z::Real) = spherical_hn2(Float64, n, z)
 @inline spherical_hn2(n::Integer, z) = spherical_hn2(ComplexF64, n, z)
@@ -100,7 +104,7 @@ Spherical Hankel function of the second kind.
 """
 First-order derivative of spherical Hankel function of the second kind.
 """
-@inline function spherical_hn2_deriv(T::DataType, n::Integer, z)
+@inline function spherical_hn2_deriv(::Type{T}, n::Integer, z) where {T}
     return spherical_jn_deriv(T, n, z) - 1im * spherical_yn_deriv(T, n, z)
 end
 
@@ -110,7 +114,7 @@ end
 """
 Riccati Bessel function of the first kind.
 """
-@inline ricatti_jn(T::DataType, n::Integer, z) = z * spherical_jn(T, n, z)
+@inline ricatti_jn(::Type{T}, n::Integer, z) where {T} = z * spherical_jn(T, n, z)
 
 @inline ricatti_jn(n::Integer, z::Real) = ricatti_jn(Float64, n, z)
 @inline ricatti_jn(n::Integer, z) = ricatti_jn(ComplexF64, n, z)
@@ -118,7 +122,7 @@ Riccati Bessel function of the first kind.
 """
 First-order derivative of Riccati Bessel function of the first kind.
 """
-@inline function ricatti_jn_deriv(T::DataType, n::Integer, z)
+@inline function ricatti_jn_deriv(::Type{T}, n::Integer, z) where {T}
     jn = spherical_jn(T, n, z)
     jnd = spherical_jn_deriv(T, n, z)
     return z * jnd + jn
@@ -132,7 +136,7 @@ Riccati Bessel function of the second kind.
 
 > Note that in `miepy`, the author used `-z⋅y(z)` instead of `z⋅y(z)`
 """
-@inline ricatti_yn(T::DataType, n::Integer, z) = z * spherical_yn(T, n, z)
+@inline ricatti_yn(::Type{T}, n::Integer, z) where {T} = z * spherical_yn(T, n, z)
 
 @inline ricatti_yn(n::Integer, z::Real) = ricatti_yn(Float64, n, z)
 @inline ricatti_yn(n::Integer, z) = ricatti_yn(ComplexF64, n, z)
@@ -140,7 +144,7 @@ Riccati Bessel function of the second kind.
 """
 First-order derivative of Riccati Bessel function of the second kind.
 """
-@inline function ricatti_yn_deriv(T::DataType, n::Integer, z)
+@inline function ricatti_yn_deriv(::Type{T}, n::Integer, z) where {T}
     yn = spherical_yn(T, n, z)
     ynd = spherical_yn_deriv(T, n, z)
     return z * ynd + yn
@@ -152,7 +156,7 @@ end
 """
 Riccati Hankel function of the first kind.
 """
-@inline ricatti_hn1(T::DataType, n::Integer, z) = ricatti_jn(T, n, z) + 1im * ricatti_yn(T, n, z)
+@inline ricatti_hn1(::Type{T}, n::Integer, z) where {T} = ricatti_jn(T, n, z) + 1im * ricatti_yn(T, n, z)
 
 @inline ricatti_hn1(n::Integer, z::Real) = ricatti_hn1(Float64, n, z)
 @inline ricatti_hn1(n::Integer, z) = ricatti_hn1(ComplexF64, n, z)
@@ -160,7 +164,9 @@ Riccati Hankel function of the first kind.
 """
 First-order derivative of Riccati Hankel function of the first kind.
 """
-@inline ricatti_hn1_deriv(T::DataType, n::Integer, z) = ricatti_jn_deriv(T, n, z) + 1im * ricatti_yn_deriv(T, n, z)
+@inline function ricatti_hn1_deriv(::Type{T}, n::Integer, z) where {T}
+    return ricatti_jn_deriv(T, n, z) + 1im * ricatti_yn_deriv(T, n, z)
+end
 
 @inline ricatti_hn1_deriv(n::Integer, z::Real) = ricatti_hn1_deriv(Float64, n, z)
 @inline ricatti_hn1_deriv(n::Integer, z) = ricatti_hn1_deriv(ComplexF64, n, z)
@@ -168,7 +174,7 @@ First-order derivative of Riccati Hankel function of the first kind.
 """
 Riccati Hankel function of the second kind.
 """
-@inline ricatti_hn2(T::DataType, n::Integer, z) = ricatti_jn(T, n, z) - 1im * ricatti_yn(T, n, z)
+@inline ricatti_hn2(::Type{T}, n::Integer, z) where {T} = ricatti_jn(T, n, z) - 1im * ricatti_yn(T, n, z)
 
 @inline ricatti_hn2(n::Integer, z::Real) = ricatti_hn2(Float64, n, z)
 @inline ricatti_hn2(n::Integer, z) = ricatti_hn2(ComplexF64, n, z)
@@ -176,7 +182,9 @@ Riccati Hankel function of the second kind.
 """
 First-order derivative of Riccati Hankel function of the second kind.
 """
-@inline ricatti_hn2_deriv(T::DataType, n::Integer, z) = ricatti_jn_deriv(T, n, z) - 1im * ricatti_yn_deriv(T, n, z)
+@inline function ricatti_hn2_deriv(::Type{T}, n::Integer, z) where {T}
+    return ricatti_jn_deriv(T, n, z) - 1im * ricatti_yn_deriv(T, n, z)
+end
 
 @inline ricatti_hn2_deriv(n::Integer, z::Real) = ricatti_hn2_deriv(Float64, n, z)
 @inline ricatti_hn2_deriv(n::Integer, z) = ricatti_hn2_deriv(ComplexF64, n, z)
@@ -186,7 +194,7 @@ Associated Legendre function without the Condon-Shotley phase.
 
 `Arblib`'s definition includes the Condon-Shotley phase, so we need to multiply the results by ``(-1)^m``.
 """
-function associated_legendre(T::DataType, n::Integer, m::Integer, z)
+function associated_legendre(::Type{T}, n::Integer, m::Integer, z) where {T}
     if T <: Arblib.ArbLike
         return (-1)^(m & 1) * Arblib.hypgeom_legendre_p!(Arblib.Arb(), Arblib.Arb(n), Arblib.Arb(m), Arblib.Arb(z), 0)
     elseif T <: Arblib.AcbLike
@@ -208,7 +216,7 @@ Calculate the associated Legendre function for all ``0\leq n\leq n_{\max}`` and 
 
 `Arblib`'s Legendre function definition includes the Condon-Shotley phase, so we need to multiply the results by ``(-1)^m``.
 """
-function associated_legendre_array(T::DataType, nmax::Integer, z)
+function associated_legendre_array(::Type{T}, nmax::Integer, z) where {T}
     terms = (nmax + 1)^2
 
     if T <: Arblib.ArbLike
@@ -260,7 +268,7 @@ Calculate ``\pi_n^m(\theta)`` defined as
 \pi_n^m(\theta)=\frac{m}{\sin\theta}P_n^m(\cos\theta)
 ```
 """
-function pi_func(T::DataType, n::Integer, m::Integer, θ::Number)
+function pi_func(::Type{T}, n::Integer, m::Integer, θ::Number) where {T}
     θ = T(θ)
     cosθ = cos(θ)
     if cosθ ≈ 1
@@ -293,7 +301,7 @@ Calculate ``\tau_n^m(\theta)`` defined as
 \tau_n^m(\theta)=\frac{\mathrm{d}}{\mathrm{d}\theta}P_n^m(\cos\theta)
 ```
 """
-function tau_func(T::DataType, n::Integer, m::Integer, θ::Number)
+function tau_func(::Type{T}, n::Integer, m::Integer, θ::Number) where {T}
     θ = T(θ)
     cosθ = cos(θ)
     if cosθ ≈ 1
@@ -338,8 +346,8 @@ end
 """
 Wigner 3-j symbols.
 """
-@inline function wigner_3j(T::DataType, j1::Integer, j2::Integer, j3::Integer, m1::Integer, m2::Integer,
-                           m3::Integer=-m1 - m2)
+@inline function wigner_3j(::Type{T}, j1::Integer, j2::Integer, j3::Integer, m1::Integer, m2::Integer,
+                           m3::Integer=-m1 - m2) where {T}
     if T <: Union{Arblib.ArbLike,BigFloat}
         return WignerSymbols.wigner3j(T, j1, j2, j3, m1, m2, m3)
     else
@@ -371,7 +379,7 @@ References:
 
 - Gaunt, J.A., 1929. IV. The triplets of helium. Philosophical Transactions of the Royal Society of London. Series A, Containing Papers of a Mathematical or Physical Character 228, 151–196.
 """
-function gaunt_a(T::DataType, m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer)
+function gaunt_a(::Type{T}, m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer) where {T}
     numerator = factorial(T, n + m) * factorial(T, ν + μ) * factorial(T, p - m - μ)
     denominator = factorial(T, n - m) * factorial(T, ν - μ) * factorial(T, p + m + μ)
     factor = (-1)^((m + μ) & 1) * (2p + 1) * √(numerator / denominator)
@@ -396,7 +404,7 @@ m & \mu & -m-\mu
 \end{aligned}
 ```
 """
-function gaunt_b(T::DataType, m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer)
+function gaunt_b(::Type{T}, m::Integer, n::Integer, μ::Integer, ν::Integer, p::Integer) where {T}
     numerator = factorial(T, n + m) * factorial(T, ν + μ) * factorial(T, p - m - μ + 1)
     denominator = factorial(T, n - m) * factorial(T, ν - μ) * factorial(T, p + m + μ + 1)
     factor = (-1)^((m + μ) & 1) * (2p + 3) * √(numerator / denominator)
@@ -417,7 +425,7 @@ d_{m n}^{s}(\vartheta)=& \sqrt{(s+m) !(s-m) !(s+n) !(s-n) !} \\
 \end{aligned}
 ```
 """
-function wigner_d_naive(T::DataType, m::Integer, n::Integer, s::Integer, θ::Number)
+function wigner_d(::Type{T}, m::Integer, n::Integer, s::Integer, θ::Number) where {T}
     if s < max(abs(m), abs(n))
         return zero(T)
     end
@@ -446,11 +454,7 @@ function wigner_d_naive(T::DataType, m::Integer, n::Integer, s::Integer, θ::Num
     return d * √(factorial(T, s + m) * factorial(T, s - m) * factorial(T, s + n) * factorial(T, s - n))
 end
 
-"""
-Wrapper of `WignerD.jl`'s `WignerD.wignerdjmn()` function, which is much faster than `wigner_d_naive()`.
-"""
-@inline wigner_d(T::DataType, m::Integer, n::Integer, s::Integer, θ::Number) = T(WignerD.wignerdjmn(s, m, n, θ))
-@inline wigner_d(m::Integer, n::Integer, s::Integer, θ::Number) = WignerD.wignerdjmn(s, m, n, θ)
+@inline wigner_d(m::Integer, n::Integer, s::Integer, θ::Number) = wigner_d(Float64, m, n, s, θ)
 
 @doc raw"""
 Calculate Wigner (small) d-function ``d_{mn}^s(\theta)`` for ``s\in[s_{\min}=\max(|m|, |n|),s_{\max}]`` (and also its derivative) via upward recursion, using Eq. (B.22) of Mishchenko et al. (2002).
@@ -480,7 +484,7 @@ where
 \end{array}\right.
 ```
 """
-function wigner_d_recursion(T::DataType, m::Integer, n::Integer, smax::Integer, θ::Number; deriv::Bool=false)
+function wigner_d_recursion(::Type{T}, m::Integer, n::Integer, smax::Integer, θ::Number; deriv::Bool=false) where {T}
     smax >= max(abs(m), abs(n)) || error("Error: smax < max(|m|, |n|)")
 
     θ = T(θ)
@@ -560,7 +564,7 @@ where
 0 \leq \alpha<2 \pi, \quad 0 \leq \beta \leq \pi, \quad 0 \leq \gamma<2 \pi
 ```
 """
-@inline function wigner_D(T::DataType, m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number)
+@inline function wigner_D(::Type{T}, m::Integer, m′::Integer, n::Integer, α::Number, β::Number, γ::Number) where {T}
     α = T(α)
     β = T(β)
     γ = T(γ)
@@ -571,8 +575,8 @@ end
     return wigner_D(Float64, m, m′, n, α, β, γ)
 end
 
-function wigner_D_recursion(T::DataType, m::Integer, m′::Integer, nmax::Integer, α::Number, β::Number,
-                            γ::Number)
+function wigner_D_recursion(::Type{T}, m::Integer, m′::Integer, nmax::Integer, α::Number, β::Number,
+                            γ::Number) where {T}
     α = T(α)
     β = T(β)
     γ = T(γ)
