@@ -295,6 +295,21 @@ end
 @inline pi_func(n::Integer, m::Integer, θ::Number) = pi_func(Float64, n, m, θ)
 
 @doc raw"""
+Use the relationship described in Eq. (B.28) in Mishchenko et al. (2002):
+
+```math
+d_{m 0}^{s}(\theta)=\sqrt{\frac{(s-m) !}{(s+m) !}} P_{s}^{m}(\cos\theta)
+```
+
+to calculate ``\pi_n^m(\theta)``.
+"""
+@inline function pi_func_wigner(::Type{T}, n::Integer, m::Integer, θ::Number) where {T}
+    return m * wigner_d(T, 0, m, n, θ) / sin(θ) * √(factorial(T, n + m) / factorial(T, n - m))
+end
+
+@inline pi_func_wigner(n::Integer, m::Integer, θ::Number) = pi_func_wigner(Float64, n, m, θ)
+
+@doc raw"""
 Calculate ``\tau_n^m(\theta)`` defined as
 
 ```math
@@ -342,6 +357,25 @@ function tau_func(::Type{T}, n::Integer, m::Integer, θ::Number) where {T}
 end
 
 @inline tau_func(n::Integer, m::Integer, θ) = tau_func(Float64, n, m, θ)
+
+"""
+Similar to `pi_func_wigner`, use Wigner d-function instead of the associated Legendre function.
+"""
+@inline function tau_func_wigner(::Type{T}, n::Integer, m::Integer, θ::Number) where {T}
+    if n == 0
+        return zero(T)
+    else
+        θ = T(θ)
+        d₀ = wigner_d(T, 0, m, n - 1, θ)
+        d₂ = wigner_d(T, 0, m, n + 1, θ)
+        sinθ = sin(θ)
+        return 1 / sinθ *
+               (-(n + 1) * √T(n^2 - m^2) * d₀ + n * √T((n + 1)^2 - m^2) * d₂) / (2n + 1) *
+               √(factorial(T, n + m) / factorial(T, n - m))
+    end
+end
+
+@inline tau_func_wigner(n::Integer, m::Integer, θ) = tau_func_wigner(Float64, n, m, θ)
 
 """
 Wigner 3-j symbols.
