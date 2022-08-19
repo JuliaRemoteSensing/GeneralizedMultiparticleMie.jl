@@ -35,7 +35,8 @@ Vector spherical wave function, electric (TM) modes.
 
 where ``i=1,2,3,4`` relates to incident, interior, outgoing and ingoing VSWF.
 """
-function vswf_electric(T::DataType, n::Integer, m::Integer, mode::VSWFMode, r::Number, θ::Number, ϕ::Number, k::Number)
+function vswf_electric(::Type{T}, n::Integer, m::Integer, mode::VSWFMode, r::Number, θ::Number, ϕ::Number,
+                       k::Number) where {T}
     r = T(r)
     θ = T(θ)
     ϕ = T(ϕ)
@@ -69,7 +70,8 @@ Vector spherical wave function, magnetic (TE) modes.
 
 where ``i=1,2,3,4`` relates to incident, interior, outgoing and ingoing VSWF.
 """
-function vswf_magnetic(T::DataType, n::Integer, m::Integer, mode::VSWFMode, r::Number, θ::Number, ϕ::Number, k::Number)
+function vswf_magnetic(::Type{T}, n::Integer, m::Integer, mode::VSWFMode, r::Number, θ::Number, ϕ::Number,
+                       k::Number) where {T}
     r = T(r)
     θ = T(θ)
     ϕ = T(ϕ)
@@ -94,13 +96,13 @@ end
 """
 Expand the electric field.
 """
-function expand_E_cluster(T::DataType, mode::VSWFMode, k::Number)
+function expand_E_cluster(::Type{T}, mode::VSWFMode, k::Number) where {T}
     k = T(k)
 
     return
 end
 
-Caching.@cache function vswf_cache(T::DataType, n::Integer, m::Integer, ν::Integer, μ::Integer)
+Caching.@cache function vswf_cache(::Type{T}, n::Integer, m::Integer, ν::Integer, μ::Integer) where {T}
     CT = complex(T)
     factor = (-1)^(m & 1) * √((2ν + 1) * (2n + 1) * factorial(T, ν - μ) * factorial(T, n - m))
     qA = minimum((n, ν, (n + ν - abs(m + μ)) ÷ 2))
@@ -127,7 +129,7 @@ end
 """
 Precompute required VSWF coefficients.
 """
-function init_vswf_cache(T::DataType, lmax::Integer)
+function init_vswf_cache(::Type{T}, lmax::Integer) where {T}
     indices = NTuple{4,Int}[(n, m, ν, μ) for n in 1:lmax for m in (-n):n for ν in 1:n for μ in (-ν):ν]
 
     Threads.@threads for (n, m, ν, μ) in indices
@@ -137,5 +139,8 @@ end
 
 @inline init_vswf_cache(lmax::Integer) = init_vswf_cache(Float64, lmax)
 
-function vsh_translation_insert_pair()
+function vswf_translation_insert_pair()
+end
+
+function vswf_rotation_matrix()
 end
