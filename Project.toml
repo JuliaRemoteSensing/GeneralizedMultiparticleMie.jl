@@ -1,6 +1,6 @@
-authors = ["Gabriel Wu <wuzihua@pku.edu.cn> and contributors"]
 name = "GeneralizedMultiparticleMie"
 uuid = "cf51e2d1-4d6a-45f8-9abd-4c48d1d87a5d"
+authors = ["Gabriel Wu <wuzihua@pku.edu.cn> and contributors"]
 version = "0.1.0"
 
 [deps]
@@ -18,4 +18,5 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 WignerSymbols = "9f57e263-0b3d-5e2e-b1be-24f2bb48858b"
 
 [compat]
+Quaternions = "0.5"
 julia = "1.7"
